@@ -42,7 +42,7 @@ and get the following output of a consensus constraint
 ............<<<<<<<..<<<<<<<<<<<<<.<<<<<<<<<<<...........<<<<<<<<<<<<<<.<<<<<(((((<<<<<<<.....<<<<...........................<<<<<<...........................>>>>>>>>>>..>>>>>.....>>>>)))))..>>>>...>>>>>>>>>>>>>>>>>>>>.>>.>>>>>>>>>>>.......>>>.......>>>>>>>.>>>>>>..............................................................
 ```
 
-that we can use to call RNAalifold to get a [constrained foldign of the alignment](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/man/RNAalifold.html#structure-constraints).
+that we can use to call RNAalifold to get a [constrained folding of the alignment](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/man/RNAalifold.html#structure-constraints).
 
 ```sh
 # store constraint in temporary file
