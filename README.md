@@ -50,3 +50,20 @@ Rscript --vanilla consensus-constraint.R -a result.aln -c input-constraints.fa >
 # call fold alignment with constraint file
 RNAalifold --aln --color --ribosum_scoring --cfactor 0.6 --nfactor 0.5 --mis -t 0 --constraint=result.con result.aln
 ```
+
+## Dependencies
+
+Requires 
+
+- R
+- `tidyverse` packages  (run in R `install.packages("tidyverse")`)
+
+If you are using conda and you dont have R installed, you can do so via conda
+
+```sh
+conda install conda-forge::r-tidyverse
+```
+
+which should install all needed dependencies.
+
+
