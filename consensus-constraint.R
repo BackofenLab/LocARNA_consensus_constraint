@@ -260,6 +260,6 @@ left_join( alignment, constraints, by="genome" ) |>
   # view()
   pull(cons) |>
   str_c(collapse="") |> 
-  writeLines() # write consensus constraint to console
+  writeLines(sep="") # write consensus constraint to console
 
 

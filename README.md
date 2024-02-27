@@ -49,10 +49,9 @@ and get the following output of a consensus constraint
 that we can use to call RNAalifold to get a [constrained folding of the alignment](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/man/RNAalifold.html#structure-constraints).
 
 ```sh
-# store constraint in temporary file
-Rscript --vanilla consensus-constraint.R -a result.aln -c input-constraints.fa > result.con
-# call fold alignment with constraint file
-RNAalifold --aln --color --ribosum_scoring --cfactor 0.6 --nfactor 0.5 --mis -t 0 --constraint=result.con result.aln
+# pipe constraint via STDIN into RNAalifold
+Rscript --vanilla consensus-constraint.R -a result.aln -c input-constraints.fa | \
+RNAalifold --aln --color --ribosum_scoring --cfactor 0.6 --nfactor 0.5 --mis -t 0 -C --enforceConstraint --noLP result.aln
 ```
 
 ## Dependencies
