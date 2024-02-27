@@ -7,7 +7,7 @@ and a corresponding ClustalW alignment LocARNA output file
 and maps the constraints to the alignment positions to
 generate a consensus constraint to be used with RNAalifold.
 
-NOTE: requires a structure constraint FOR EACH aligned sequence!
+NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!
 
 ## Parameters
 
@@ -20,7 +20,11 @@ Options:
                 LocARNA Clustal-w alignment output file to map the constaints to
 
         -c FASTA.FILE, --constraint=FASTA.FILE
-                LocARNA FASTA input file with '#S' structure constraints used to generate the alignment
+                LocARNA FASTA input file with structure constraints used to generate the alignment
+
+        -t S|FS, --type=S|FS
+                LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint
+
 ```
 
 ## Example

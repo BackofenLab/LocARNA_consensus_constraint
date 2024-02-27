@@ -17,6 +17,8 @@ suppressWarnings(
 clustalw.alignment.file <- NA
 # constraint file
 locarna.constraint.file <- NA
+# constraint type
+constraint.type <- "S"
 ################################################
 
 
@@ -58,7 +60,7 @@ if (isNamespaceLoaded("rstudioapi")) {
                     "and maps the constraints to the alignment positions to\n",
                     "generate a consensus constraint to be used with RNAalifold.\n",
                     "\n",
-                    "NOTE: requires a structure constraint FOR EACH aligned sequence!"
+                    "NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!"
                     ),
                   add_help_option = T
                   ) |> 
@@ -71,8 +73,16 @@ if (isNamespaceLoaded("rstudioapi")) {
                 type="character",
                 metavar = "fasta.file",
                 help = str_c(
-                  "LocARNA FASTA input file with '#S' structure constraints used to generate the alignment"
-                  )) 
+                  "LocARNA FASTA input file with structure constraints used to generate the alignment"
+                )) |> 
+    add_option( c("-t","--type"),
+                type="character",
+                metavar = "S|FS",
+                default = "S",
+                help = str_c(
+                  "LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint"
+                )) 
+    
   
   # parse and store command line arguments
   # prints help message and exits if "--help" or "-h" found among arguments
@@ -81,12 +91,24 @@ if (isNamespaceLoaded("rstudioapi")) {
   # store parsing results
   clustalw.alignment.file <- args$alignment
   locarna.constraint.file <- args$constraint
+  constraint.type <- args$type
   
-  if (is.na(clustalw.alignment.file) | is.na(locarna.constraint.file)) {
+  # sanity check
+  if (is.null(clustalw.alignment.file) | is.null(locarna.constraint.file)) {
     stop("Alignment and constraint file must be provided.")
   }
 }
 
+# input validation
+if ( ! (constraint.type %in% c("S","FS")) ) {
+  stop("Constraint type must be either 'S' or 'FS'")
+}
+if ( ! file.exists(clustalw.alignment.file) ) {
+  stop(str_c("Alignment file '",clustalw.alignment.file,"' does not exist."))
+}
+if ( ! file.exists(locarna.constraint.file) ) {
+  stop(str_c("Constraint file '",locarna.constraint.file,"' does not exist."))
+}
 
 # read alignment 
 alignment <- 
@@ -101,7 +123,7 @@ constraints <-
   read_tsv(
     locarna.constraint.file,
            col_names="dat", show_col_types = F ) |> 
-  filter( str_detect(dat,"\\s#S\\s*$") | str_detect(dat,"^>") ) |> 
+  filter( str_detect(dat,str_c("\\s#",constraint.type,"\\s*$")) | str_detect(dat,"^>") ) |> 
   # number ids and constraints consecutively (assuming one constraint FOR EACH sequence)
   mutate( isID = str_detect(dat,"^>") ) |>
   group_by( isID ) |>
