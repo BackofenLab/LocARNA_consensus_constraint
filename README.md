@@ -23,11 +23,10 @@ Options:
                 LocARNA FASTA input file with structure constraints used to generate the alignment
 
         -t S|FS, --type=S|FS
-                LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint. Default: S
+                LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint.Default: 'S'
+
         -m (>0), --min=(>0)
-                Minimal number of similar constraints per position to be considered in consensus. Default: 2
-
-
+                Minimal number of similar constraints per position to be considered in consensus.Default: 2
 ```
 
 ## Example

@@ -80,16 +80,18 @@ if (isNamespaceLoaded("rstudioapi")) {
     add_option( c("-t","--type"),
                 type="character",
                 metavar = "S|FS",
-                default = "S",
+                default = constraint.type,
                 help = str_c(
-                  "LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint. Default: 'S'"
+                  "LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint.",
+                  "Default: '",constraint.type,"'"
                 )) |> 
     add_option( c("-m","--min"),
                 type="integer",
                 metavar = "(>0)",
-                default = "2",
+                default = as.character(min.constraints),
                 help = str_c(
-                  "Minimal number of similar constraints per position to be considered in consensus. Default: 2"
+                  "Minimal number of similar constraints per position to be considered in consensus.",
+                  "Default: ", min.constraints
                 ))  
     
   
