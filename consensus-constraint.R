@@ -19,6 +19,8 @@ clustalw.alignment.file <- NA
 locarna.constraint.file <- NA
 # constraint type
 constraint.type <- "S"
+# minimal number of constraints to be considered in consensus
+min.constraints <- 2
 ################################################
 
 
@@ -80,8 +82,15 @@ if (isNamespaceLoaded("rstudioapi")) {
                 metavar = "S|FS",
                 default = "S",
                 help = str_c(
-                  "LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint"
-                )) 
+                  "LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint. Default: 'S'"
+                )) |> 
+    add_option( c("-m","--min"),
+                type="integer",
+                metavar = "(>0)",
+                default = "2",
+                help = str_c(
+                  "Minimal number of similar constraints per position to be considered in consensus. Default: 2"
+                ))  
     
   
   # parse and store command line arguments
@@ -92,6 +101,7 @@ if (isNamespaceLoaded("rstudioapi")) {
   clustalw.alignment.file <- args$alignment
   locarna.constraint.file <- args$constraint
   constraint.type <- args$type
+  min.constraints <- args$min
   
   # sanity check
   if (is.null(clustalw.alignment.file) | is.null(locarna.constraint.file)) {
@@ -100,6 +110,9 @@ if (isNamespaceLoaded("rstudioapi")) {
 }
 
 # input validation
+if (min.constraints < 1) {
+  stop("Minimal number of constraints to be considered in consensus must be greater than 0.")
+}
 if ( ! (constraint.type %in% c("S","FS")) ) {
   stop("Constraint type must be either 'S' or 'FS'")
 }
@@ -231,27 +244,27 @@ left_join( alignment, constraints, by="genome" ) |>
   mutate( 
     # get count of distinct constraint encodings at each position
     consCount = unlist(all) |> unique() |> length(),
-    `c(` = sum(na.omit(unlist(all)) > pos ) > 0,
-    `c)` = sum(na.omit(unlist(all)) < pos & na.omit(unlist(all)) > 0 ) > 0,
-    `c<` = sum(na.omit(unlist(all)) == -1 ) > 0,
-    `c>` = sum(na.omit(unlist(all)) == -2 ) > 0,
-    `cx` = sum(na.omit(unlist(all)) == 0 ) > 0,
+    `c(` = sum(na.omit(unlist(all)) > pos ),
+    `c)` = sum(na.omit(unlist(all)) < pos & na.omit(unlist(all)) > 0 ),
+    `c<` = sum(na.omit(unlist(all)) == -1 ),
+    `c>` = sum(na.omit(unlist(all)) == -2 ),
+    `cx` = sum(na.omit(unlist(all)) == 0 ),
     cons = ifelse(consCount==1,
                   # agreement in constraint
                   case_when(
-                    `c(` ~ "(", # exactly the same pairing partner within alignment
-                    `c)` ~ ")", # exactly the same pairing partner within alignment
-                    `c<` ~ "<",
-                    `c>` ~ ">",
-                    `cx` ~ "x"
+                    `c(`>0 ~ "(", # exactly the same pairing partner within alignment
+                    `c)`>0 ~ ")", # exactly the same pairing partner within alignment
+                    `c<`>0 ~ "<",
+                    `c>`>0 ~ ">",
+                    `cx`>0 ~ "x"
                   ),
-                  ifelse( `cx`,
+                  ifelse( `cx`>0,
                           # at least one block constraint 'x' at this position
                           "x",
-                          ifelse( (`c<` | `c(`) & !(`c>` | `c)`),
+                          ifelse( sum(`c<`,`c(`)>=min.constraints & sum(`c>`,`c)`)==0,
                                   # only upstream pair constraints at this position
                                   "<",
-                                  ifelse( (`c>` | `c)`) & !(`c<` | `c(`),
+                                  ifelse( sum(`c>`,`c)`)>=min.constraints & sum(`c<`,`c(`)==0,
                                           # only downstream pair constraints at this position
                                           ">",
                                           # mixed pair constraints at this position

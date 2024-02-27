@@ -23,7 +23,10 @@ Options:
                 LocARNA FASTA input file with structure constraints used to generate the alignment
 
         -t S|FS, --type=S|FS
-                LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint
+                LocARNA structure constraint type to be used: (S)tructure constraint or (FS) = fixed structure constraint. Default: S
+        -m (>0), --min=(>0)
+                Minimal number of similar constraints per position to be considered in consensus. Default: 2
+
 
 ```
 
@@ -43,7 +46,7 @@ Rscript --vanilla consensus-constraint.R -a result.aln -c input-constraints.fa
 and get the following output of a consensus constraint
 
 ```sh
-............<<<<<<<..<<<<<<<<<<<<<.<<<<<<<<<<<...........<<<<<<<<<<<<<<.<<<<<(((((<<<<<<<.....<<<<...........................<<<<<<...........................>>>>>>>>>>..>>>>>.....>>>>)))))..>>>>...>>>>>>>>>>>>>>>>>>>>.>>.>>>>>>>>>>>.......>>>.......>>>>>>>.>>>>>>..............................................................
+.................<...<<<<.<<<<<<...<..<<<<<.................<<.<<<<<<<<......(((((<<<<................................................................................................>>)))))....>....>>>>>>>>>>.>>.............>>>>>>.>>.......>>....................................................................................
 ```
 
 that we can use to call RNAalifold to get a [constrained folding of the alignment](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/man/RNAalifold.html#structure-constraints).
