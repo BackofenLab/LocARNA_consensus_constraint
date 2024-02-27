@@ -57,11 +57,12 @@ Requires
 
 - R
 - `tidyverse` packages  (run in R `install.packages("tidyverse")`)
+- `optparse` package
 
 If you are using conda and you dont have R installed, you can do so via conda
 
 ```sh
-conda install conda-forge::r-tidyverse
+conda install conda-forge::r-tidyverse conda-forge::r-optparse
 ```
 
 which should install all needed dependencies.
