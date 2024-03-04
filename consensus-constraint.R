@@ -44,6 +44,9 @@ if (isNamespaceLoaded("rstudioapi")) {
   locarna.constraint.file <- 
     # "in-cm.fa"
     "input-constraints.fa"
+
+  # set constraint type  
+  constraint.type="S"
   
 } else {
   
@@ -173,17 +176,16 @@ get_open_bracket_count_per_position <- function(x) {
       close_bracket_count <- close_bracket_count +1
     } else if (x[i] == "<") {
       result[i] <- -1
-      open_bracket_count <- open_bracket_count + 1
-      result[i] <- -open_bracket_count
     } else if (x[i] == ">") {
-      # result[i] <- -2
-      result[i] <- -(open_bracket_count - close_bracket_count)
-      close_bracket_count <- close_bracket_count +1
+      result[i] <- -2
     } else if (x[i] == "x") {
       result[i] <- 0
     } else {
       result[i] <- NA
     }
+  }
+  if (open_bracket_count != close_bracket_count) {
+    stop(str_c("Unbalanced opening brackets in input string. Open: ",open_bracket_count," Close: ",close_bracket_count), call. = F)
   }
   result
 }
@@ -213,13 +215,14 @@ get_alignment_position <- function(x) {
   result[!is.na(result)]
 }
 
-map_constraint_to_alignment <- function(aln, con) {
+# constraint mapping including catching of error messages
+map_constraint_to_alignment <- safely(function(aln, con) {
   alnPos <- get_alignment_position(aln)
   alnCon <- rep(NA,str_length(aln[1]))
   alnCon[alnPos] <- get_open_bracket_count_per_position(con)
   alnCon <- get_matching_bracket_index(alnCon)
   alnCon
-}
+})
 # aln <- "A--AAAA-AAA-AA--"
 # alnPos <- get_alignment_position(aln)
 # 
@@ -228,17 +231,37 @@ map_constraint_to_alignment <- function(aln, con) {
 # alnCon[alnPos] <- conPos
 
 
-# checks whether a given symbol is within the constraint list
-contains_constraint <- function( x, con=".") {
-  sum(na.omit(unlist(x)) == con ) > 0
-}
-# contains_constraint( x = (c("A","B","C",NA)),"x")
-
-left_join( alignment, constraints, by="genome" ) |> 
+# map constraints to alignment
+mapped_constraints <- 
+  left_join( alignment, constraints, by="genome" ) |> 
   transmute( aln = alignment, con = constraint) |> 
   rowwise() |>
   pmap(.f = map_constraint_to_alignment) |> 
-  set_names( alignment$genome ) |>
+  set_names( alignment$genome ) |> 
+  transpose() 
+
+# handle mapping errors
+if (mapped_constraints$error |> compact() |> length() > 0) {
+  mapping_errors <-
+    mapped_constraints$error |> 
+    compact() |> 
+    unlist() |> 
+    bind_rows() |> 
+    pivot_longer(everything(), names_to = "sequence", values_to = "error.message") |> 
+    mutate( sequence = str_remove(sequence,".message$"))
+  #print error message to stderr
+  write(str_c("Errors of mapping constraints to alignment:\n",
+                   transmute(mapping_errors, out = str_c("- ",sequence,": ",error.message)) |> 
+                     pull(out) |> 
+                     str_c(collapse = "\n")
+              ),
+        stderr())
+  # stop execution
+  stop("Please correct the errors and try again.")
+}
+
+# generate consensus constraint encoding
+mapped_constraints$result |> 
   bind_cols( ) |> 
   mutate( pos = row_number() ) |>
   rowwise() |> 
@@ -270,7 +293,7 @@ left_join( alignment, constraints, by="genome" ) |>
                                           # only downstream pair constraints at this position
                                           ">",
                                           # mixed pair constraints at this position
-                                          NA)))) ) |>
+                                          NA)))) ) |> 
   mutate( cons = ifelse( is.na(cons), ".", cons ) ) |>
   # view()
   pull(cons) |>
