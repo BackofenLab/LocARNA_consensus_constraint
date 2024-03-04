@@ -62,10 +62,12 @@ if (isNamespaceLoaded("rstudioapi")) {
     OptionParser( description =
                     str_c(
                     "\n",
-                    "Reads a LocARNA input fasta file with structure constraints (#S)\n",
-                    "and a corresponding ClustalW alignment LocARNA output file\n",
-                    "and maps the constraints to the alignment positions to\n",
-                    "generate a consensus constraint to be used with RNAalifold.\n",
+                    "Reads a LocARNA input FASTA file with structure (#S) or fixed\n",
+                    "structure (#FS) constraints and a corresponding ClustalW alignment\n",
+                    "file produced by LocARNA using the given constraints.\n",
+                    "Individual sequence constraints are mapped to respective alignment positions\n",
+                    "to generate a consensus constraint that can be used with RNAalifold\n",
+                    "to predict a constraint consensus RNA secondary structure of the alignment.\n",
                     "\n",
                     "NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!\n",
                     "\n",
@@ -169,6 +171,10 @@ constraints <-
   ungroup() |> 
   transmute( genome = str_sub(iTRUE,2,-1),
              constraint = str_remove(iFALSE, "\\s+\\S+\\s*$" ) )
+
+if( inner_join(alignment, constraints, by="genome") |> nrow() != nrow(alignment)) {
+  stop("Number of constraints does not match number of sequences in alignment or sequence IDs differ. Check input files.")
+}
 
 ##################################################################
 # update constraints to alignment length

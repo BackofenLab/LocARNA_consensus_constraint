@@ -2,10 +2,12 @@
 
 Utility R script based on tidyverse packages.
 
-Reads a LocARNA input fasta file with structure constraints (#S)
-and a corresponding ClustalW alignment LocARNA output file
-and maps the constraints to the alignment positions to
-generate a consensus constraint to be used with RNAalifold.
+Reads a LocARNA input FASTA file with structure (#S) or fixed
+structure (#FS) constraints and a corresponding ClustalW alignment
+file produced by LocARNA using the given constraints.
+Individual sequence constraints are mapped to respective alignment positions
+to generate a consensus constraint that can be used with RNAalifold
+to predict a constraint consensus RNA secondary structure of the alignment.
 
 NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!
 
