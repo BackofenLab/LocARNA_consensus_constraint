@@ -120,6 +120,7 @@ if (isNamespaceLoaded("rstudioapi")) {
   locarna.constraint.file <- args$constraint
   constraint.type <- args$type
   min.constraints <- args$min
+  min.fraction <- args$fraction
   
   # sanity check
   if (is.null(clustalw.alignment.file) | is.null(locarna.constraint.file)) {
