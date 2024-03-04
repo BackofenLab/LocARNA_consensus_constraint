@@ -67,7 +67,10 @@ if (isNamespaceLoaded("rstudioapi")) {
                     "and maps the constraints to the alignment positions to\n",
                     "generate a consensus constraint to be used with RNAalifold.\n",
                     "\n",
-                    "NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!"
+                    "NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!\n",
+                    "\n",
+                    "Supported constraint encodings are '()<>.x', see LocARNA documentation.\n",
+                    "All other encodings are silently ignored."
                     ),
                   add_help_option = T
                   ) |> 

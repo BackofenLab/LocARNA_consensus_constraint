@@ -9,6 +9,9 @@ generate a consensus constraint to be used with RNAalifold.
 
 NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!
 
+Supported constraint encodings are '()<>.x', see LocARNA documentation.
+All other encodings are silently ignored.
+
 ## Parameters
 
 ```
