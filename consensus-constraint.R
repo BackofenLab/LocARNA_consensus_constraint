@@ -21,6 +21,8 @@ locarna.constraint.file <- NA
 constraint.type <- "S"
 # minimal number of constraints to be considered in consensus
 min.constraints <- 2
+# minimal fraction of similar constraints to be considered in consensus
+min.fraction <- 0.7
 ################################################
 
 
@@ -95,6 +97,14 @@ if (isNamespaceLoaded("rstudioapi")) {
                 help = str_c(
                   "Minimal number of similar constraints per position to be considered in consensus.",
                   "Default: ", min.constraints
+                )) |> 
+    add_option( c("-f","--fraction"),
+                type="double",
+                metavar = "[0.6..1]",
+                default = as.character(min.fraction),
+                help = str_c(
+                  "Minimal fraction of similar constraints per position to be considered in consensus.",
+                  "Default: ", min.fraction
                 ))  
     
   
@@ -120,6 +130,9 @@ if (min.constraints < 1) {
 }
 if ( ! (constraint.type %in% c("S","FS")) ) {
   stop("Constraint type must be either 'S' or 'FS'")
+}
+if ( min.fraction>1 | min.fraction<0.6) {
+  stop("Minimal fraction of similar constraints to be considered in consensus must be between 0.6 and 1.")
 }
 if ( ! file.exists(clustalw.alignment.file) ) {
   stop(str_c("Alignment file '",clustalw.alignment.file,"' does not exist."))
@@ -260,6 +273,13 @@ if (mapped_constraints$error |> compact() |> length() > 0) {
   stop("Please correct the errors and try again.")
 }
 
+# provides the maximal frequency of any value among the provided ones
+getMaxFrequency <- function(n=NA, ...) {
+  print(c(...))
+  return( max( table(c(...)), rm.na=T ) / n )
+}
+#getMaxFrequency(1,3,23,4,234,234234,2,2,2,n=1)
+
 # generate consensus constraint encoding
 mapped_constraints$result |> 
   bind_cols( ) |> 
@@ -270,10 +290,15 @@ mapped_constraints$result |>
     # get count of distinct constraint encodings at each position
     consCount = unlist(all) |> unique() |> length(),
     `c(` = sum(na.omit(unlist(all)) > pos ),
+    # max number of equal downstream base pairing partner
+    `c(max` = ifelse(`c(`==0,0, na.omit(unlist(all))[na.omit(unlist(all)) > pos] |> table() |> max()), 
     `c)` = sum(na.omit(unlist(all)) < pos & na.omit(unlist(all)) > 0 ),
+    # max number of equal downstream base pairing partner
+    `c)max` = ifelse(`c)`==0,0, na.omit(unlist(all))[na.omit(unlist(all)) < pos & na.omit(unlist(all)) > 0 ] |> table() |> max()), 
     `c<` = sum(na.omit(unlist(all)) == -1 ),
     `c>` = sum(na.omit(unlist(all)) == -2 ),
     `cx` = sum(na.omit(unlist(all)) == 0 ),
+    fMax = max(c(`c(max`, `c)max`, `c>`, `c<` ))/length(all), # maximum frequency of any pair constraint
     cons = ifelse(consCount==1,
                   # agreement in constraint
                   case_when(
@@ -286,14 +311,24 @@ mapped_constraints$result |>
                   ifelse( `cx`>0,
                           # at least one block constraint 'x' at this position
                           "x",
-                          ifelse( sum(`c<`,`c(`)>=min.constraints & sum(`c>`,`c)`)==0,
-                                  # only upstream pair constraints at this position
-                                  "<",
-                                  ifelse( sum(`c>`,`c)`)>=min.constraints & sum(`c<`,`c(`)==0,
-                                          # only downstream pair constraints at this position
-                                          ">",
-                                          # mixed pair constraints at this position
-                                          NA)))) ) |> 
+                          ifelse( fMax >= min.fraction,
+                                  # maximally frequent constraint
+                                  case_when(
+                                    near(`c(max`/length(all),fMax) ~ "(", # mostly the same pairing partner within alignment
+                                    near(`c)max`/length(all),fMax) ~ ")", # mostly the same pairing partner within alignment
+                                    near(`c<`/length(all),fMax) ~ "<",
+                                    near(`c>`/length(all),fMax) ~ ">"
+                                  ),
+                                  ifelse( sum(`c<`,`c(`)>=min.constraints & sum(`c>`,`c)`)==0,
+                                          # only upstream pair constraints at this position
+                                          "<",
+                                          ifelse( sum(`c>`,`c)`)>=min.constraints & sum(`c<`,`c(`)==0,
+                                                  # only downstream pair constraints at this position
+                                                  ">",
+                                                  # mixed pair constraints at this position
+                                                  NA
+                                          )))))
+  ) |> 
   mutate( cons = ifelse( is.na(cons), ".", cons ) ) |>
   # view()
   pull(cons) |>

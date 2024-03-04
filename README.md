@@ -11,7 +11,7 @@ NOTE: requires a NESTED structure constraint FOR EACH aligned sequence!
 
 ## Parameters
 
-```sh
+```
 Options:
         -h, --help
                 Show this help message and exit
@@ -27,6 +27,9 @@ Options:
 
         -m (>0), --min=(>0)
                 Minimal number of similar constraints per position to be considered in consensus.Default: 2
+
+        -f [0.6..1], --fraction=[0.6..1]
+                Minimal fraction of similar constraints per position to be considered in consensus.Default: 0.7
 ```
 
 ## Example
@@ -45,7 +48,7 @@ Rscript --vanilla consensus-constraint.R -a result.aln -c input-constraints.fa
 and get the following output of a consensus constraint
 
 ```sh
-.................<...<<<<.<<<<<<...<..<<<<<.................<<.<<<<<<<<......(((((<<<<................................................................................................>>)))))....>....>>>>>>>>>>.>>.............>>>>>>.>>.......>>....................................................................................
+.................<...<<<<.<<<<<<...<..<<<<<.................((.<(((<<(<......(((((<<<<................................................................................................>>)))))....>....>)>>)))>)).>>.............>>>>>>.>>.......>>....................................................................................
 ```
 
 that we can use to call RNAalifold to get a [constrained folding of the alignment](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/man/RNAalifold.html#structure-constraints).
